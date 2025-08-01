@@ -7,7 +7,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Rota de teste
+//Rota Raiz
+app.get('/', (req, res) => {
+  res.send('Career Mode Hub API está no ar!');
+});
+
+//Rota de teste
 app.get('/api/status', (req, res) => {
   res.json({ message: 'Backend do Career Mode Hub está rodando!' });
 });
