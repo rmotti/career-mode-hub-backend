@@ -6,15 +6,17 @@ export const registerUser = async (req, res) => {
   try {
     const { userName, email, password } = req.body;
 
-    // Verifica se já existe
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: 'Usuário já existe' });
 
-    // Cria usuário
     const user = await User.create({ userName, email, password });
+
+    // 🔹 Gera token ao criar usuário
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({
       message: 'Usuário criado com sucesso',
+      token, // 🔹 envia token para login automático
       user: {
         id: user._id,
         userName: user.userName,
@@ -22,7 +24,7 @@ export const registerUser = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro no servidor', error });
+    res.status(500).json({ message: 'Erro no servidor', error: error.message });
   }
 };
 
