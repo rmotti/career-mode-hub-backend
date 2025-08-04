@@ -1,9 +1,12 @@
 import dotenv from "dotenv";
-dotenv.config(); // ✅ Primeiro de tudo
+dotenv.config(); 
 
 import app from "./app.js";
 import { connectDB } from "./config/configdb.js";
 import userRoutes from './routes/userRoute.js';
+import saveRoutes from "./routes/saveRoutes.js";
+
+app.use("/api/saves", saveRoutes);
 
 app.use('/api/users', userRoutes);
 
