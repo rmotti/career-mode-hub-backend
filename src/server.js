@@ -5,8 +5,12 @@ import app from "./app.js";
 import { connectDB } from "./config/configdb.js";
 import userRoutes from "./routes/userRoute.js";
 import saveRoutes from "./routes/saveRoutes.js";
+import teamRoutes from "./routes/teamRoutes.js";
+
+console.log("RAPIDAPI_KEY carregada?", process.env.RAPIDAPI_KEY ? "Sim" : "Não");
 
 // Middlewares de rotas
+app.use("/api/teams", teamRoutes);
 app.use("/api/saves", saveRoutes);
 app.use("/api/users", userRoutes);
 
