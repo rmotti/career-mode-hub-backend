@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
+// 🔹 Registrar usuário
 export const registerUser = async (req, res) => {
   try {
     const { userName, email, password } = req.body;
@@ -11,24 +12,24 @@ export const registerUser = async (req, res) => {
 
     const user = await User.create({ userName, email, password });
 
-    // 🔹 Gera token ao criar usuário
+    // Gera token ao criar usuário
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({
       message: 'Usuário criado com sucesso',
-      token, // 🔹 envia token para login automático
+      token,
       user: {
         id: user._id,
         userName: user.userName,
-        email: user.email
-      }
+        email: user.email,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: 'Erro no servidor', error: error.message });
   }
 };
 
-
+// 🔹 Login de usuário
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -49,14 +50,22 @@ export const loginUser = async (req, res) => {
       token,
       user: {
         id: user._id,
-        userName: user.userName, // ✅ Incluído
-        email: user.email
-      }
+        userName: user.userName,
+        email: user.email,
+      },
     });
   } catch (error) {
-  console.error(error);
-  res.status(500).json({ message: 'Erro no servidor', error: error.message });
-}
-
+    console.error(error);
+    res.status(500).json({ message: 'Erro no servidor', error: error.message });
+  }
 };
 
+//Listar todos os usuários (sem senha)
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, '-password').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar usuários', error: error.message });
+  }
+};
