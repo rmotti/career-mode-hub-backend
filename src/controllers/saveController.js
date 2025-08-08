@@ -1,4 +1,9 @@
-import { Save } from "../models/Save.js";
+import { 
+  createNewSave, 
+  fetchUserSaves, 
+  updateExistingSave, 
+  deleteUserSave 
+} from "../services/saveService.js";
 
 // Criar novo save
 export const createSave = async (req, res) => {
@@ -9,9 +14,9 @@ export const createSave = async (req, res) => {
       return res.status(400).json({ message: "Preencha todos os campos!" });
     }
 
-    const save = await Save.create({
+    const save = await createNewSave({
       user: req.user._id,
-      userName: req.user.userName, 
+      userName: req.user.userName,
       name,
       team,
       season,
@@ -23,11 +28,10 @@ export const createSave = async (req, res) => {
   }
 };
 
-
 // Listar todos os saves do usuário logado
 export const getUserSaves = async (req, res) => {
   try {
-    const saves = await Save.find({ user: req.user._id }).sort({ updatedAt: -1 });
+    const saves = await fetchUserSaves(req.user._id);
     res.json(saves);
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar saves", error: error.message });
@@ -40,17 +44,11 @@ export const updateSave = async (req, res) => {
     const { id } = req.params;
     const { name, team, season } = req.body;
 
-    const save = await Save.findOne({ _id: id, user: req.user._id });
+    const save = await updateExistingSave(req.user._id, id, { name, team, season });
 
     if (!save) {
       return res.status(404).json({ message: "Save não encontrado" });
     }
-
-    if (name) save.name = name;
-    if (team) save.team = team;
-    if (season) save.season = season;
-
-    await save.save();
 
     res.json(save);
   } catch (error) {
@@ -63,7 +61,7 @@ export const deleteSave = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const save = await Save.findOneAndDelete({ _id: id, user: req.user._id });
+    const save = await deleteUserSave(req.user._id, id);
 
     if (!save) {
       return res.status(404).json({ message: "Save não encontrado" });
