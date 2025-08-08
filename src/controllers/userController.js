@@ -1,31 +1,17 @@
-import User from '../models/User.js';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import { registerNewUser, loginExistingUser, fetchAllUsers } from "../services/userService.js";
 
 // 🔹 Registrar usuário
 export const registerUser = async (req, res) => {
   try {
     const { userName, email, password } = req.body;
-
-    const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json({ message: 'Usuário já existe' });
-
-    const user = await User.create({ userName, email, password });
-
-    // Gera token ao criar usuário
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const result = await registerNewUser({ userName, email, password });
 
     res.status(201).json({
-      message: 'Usuário criado com sucesso',
-      token,
-      user: {
-        id: user._id,
-        userName: user.userName,
-        email: user.email,
-      },
+      message: "Usuário criado com sucesso",
+      ...result,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro no servidor', error: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
@@ -33,39 +19,26 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Busca usuário pelo email
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
-
-    // Verifica senha
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: 'Senha inválida' });
-
-    // Gera token JWT
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const result = await loginExistingUser({ email, password });
 
     res.json({
-      message: 'Login bem-sucedido',
-      token,
-      user: {
-        id: user._id,
-        userName: user.userName,
-        email: user.email,
-      },
+      message: "Login bem-sucedido",
+      ...result,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Erro no servidor', error: error.message });
+    const status = error.message.includes("não encontrado") ? 404 :
+                   error.message.includes("Senha inválida") ? 401 : 400;
+
+    res.status(status).json({ message: error.message });
   }
 };
 
-//Listar todos os usuários (sem senha)
+// 🔹 Listar usuários
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}, '-password').sort({ createdAt: -1 });
+    const users = await fetchAllUsers();
     res.json(users);
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar usuários', error: error.message });
+    res.status(500).json({ message: "Erro ao buscar usuários", error: error.message });
   }
 };
