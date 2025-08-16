@@ -1,20 +1,32 @@
-import express from 'express';
-import cors from 'cors';
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
 
 const app = express();
 
-// Middlewares
-app.use(cors());
+// ===== CORS =====
+const allowedOrigins = [
+  "http://localhost:3000", // CRA
+  "http://localhost:5173", // Vite
+  "https://career-mode-hub.vercel.app/" // TODO: troque pelo domínio real do seu front na Vercel
+];
+
+app.use(cors({
+  origin: (origin, cb) => {
+    // permite tools sem origin (ex.: curl/insomnia) e os allowed
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error(`Origin não permitido: ${origin}`));
+  },
+  credentials: true
+}));
+
+// ===== Segurança básica =====
+app.use(helmet());
 app.use(express.json());
 
-//Rota Raiz
-app.get('/', (req, res) => {
-  res.send('Career Mode Hub API está no ar!');
-});
-
-//Rota de teste
-app.get('/api/status', (req, res) => {
-  res.json({ message: 'Backend do Career Mode Hub está rodando!' });
+// ===== Healthcheck =====
+app.get("/api/status", (req, res) => {
+  res.json({ ok: true, env: process.env.NODE_ENV || "dev" });
 });
 
 export default app;
