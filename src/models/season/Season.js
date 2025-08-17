@@ -10,15 +10,31 @@ const seasonSchema = new mongoose.Schema(
       index: true,
     },
     label: {
-      type: String,           // ex.: "2025/26"
+      type: String, 
       required: true,
       trim: true,
     },
     startDate: { type: Date },
     endDate: { type: Date },
-    mainLeagueName: { type: String },   // ex.: "Primeira Liga"
-    mainLeagueId: { type: Number },     // opcional (id externo)
+    mainLeagueName: { type: String }, 
+    mainLeagueId: { type: Number },   
     notes: { type: String },
+
+    // 🔹 Resumo rápido da temporada
+    summary: {
+      squadCount: { type: Number, default: 0 },          
+      wageWeeklyTotal: { type: Number, default: 0 },     
+      budgetCurrent: { type: Number, default: 0 },      
+
+      transfersInCount: { type: Number, default: 0 },    
+      transfersOutCount: { type: Number, default: 0 },   
+
+      goalsFor: { type: Number, default: 0 },
+      goalsAgainst: { type: Number, default: 0 },
+      wins: { type: Number, default: 0 },
+      draws: { type: Number, default: 0 },
+      losses: { type: Number, default: 0 },
+    },
   },
   { timestamps: true }
 );

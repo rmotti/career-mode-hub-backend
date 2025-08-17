@@ -9,6 +9,7 @@ import { connectDB } from "./config/configdb.js";
 import userRoutes from "./routes/user/userRoutes.js";
 import saveRoutes from "./routes/save/saveRoutes.js";
 import seasonRoutes from "./routes/season/seasonRoutes.js";
+import playerRoutes from "./routes/player/playerRoutes.js";
 import teamRoutes from "./api/team/teamRoutes.js";
 import countriesRoutes from "./api/country/countriesRoutes.js";
 import leaguesRoutes from "./api/league/leaguesRoutes.js";
@@ -20,8 +21,9 @@ app.use("/api/users", userRoutes);
 app.use("/api/countries", countriesRoutes);
 app.use("/api/leagues", leaguesRoutes);
 app.use("/api/seasons", seasonRoutes);
-
+app.use("/api/saves/:saveId/seasons/:seasonId/players", playerRoutes);
 // Rota raiz
+
 app.get("/", (_req, res) => {
   res.send("Career Mode Hub API está no ar!");
 });
