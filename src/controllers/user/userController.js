@@ -1,4 +1,4 @@
-import { registerNewUser, loginExistingUser, fetchAllUsers } from "../services/userService.js";
+import { registerNewUser, loginExistingUser, fetchAllUsers } from "../../services/user/userService.js";
 
 // 🔹 Registrar usuário
 export const registerUser = async (req, res) => {

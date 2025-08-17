@@ -1,11 +1,11 @@
 import express from "express";
-import { protect } from "../middlewares/authMiddleware.js";
+import { protect } from '../../middlewares/authMiddleware.js'
 import {
   createSave,
   getUserSaves,
   updateSave,
   deleteSave,
-} from "../controllers/saveController.js";
+} from "../../controllers/save/saveController.js";
 
 const router = express.Router();
 

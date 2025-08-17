@@ -1,4 +1,4 @@
-import { fetchCountries } from "../services/countryService.js";
+import { fetchCountries } from "./countryService.js";
 
 export const getAllCountries = async (req, res) => {
   try {

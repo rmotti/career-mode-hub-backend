@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const seasonSchema = new mongoose.Schema(
   {
-    save: {
+    saveRef: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Save",
       required: true,
@@ -24,6 +24,6 @@ const seasonSchema = new mongoose.Schema(
 );
 
 // mesma temporada não pode ser criada 2x no mesmo save
-seasonSchema.index({ save: 1, label: 1 }, { unique: true });
+seasonSchema.index({ saveRef: 1, label: 1 }, { unique: true });
 
 export const Season = mongoose.model("Season", seasonSchema);

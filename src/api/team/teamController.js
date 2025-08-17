@@ -1,4 +1,4 @@
-import { fetchTeams } from "../services/teamService.js";
+import { fetchTeams } from "./teamService.js";
 
 export const getAllTeams = async (req, res) => {
   try {

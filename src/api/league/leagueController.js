@@ -1,4 +1,4 @@
-import { fetchLeaguesByCountry } from "../services/leagueService.js";
+import { fetchLeaguesByCountry } from "./leagueService.js";
 
 export const getLeaguesByCountry = async (req, res) => {
   const { country } = req.query;

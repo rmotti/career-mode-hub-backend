@@ -3,7 +3,7 @@ import {
   fetchUserSaves, 
   updateExistingSave, 
   deleteUserSave 
-} from "../services/saveService.js";
+} from "../../services/save/saveService.js";
 
 // Criar novo save
 export const createSave = async (req, res) => {
