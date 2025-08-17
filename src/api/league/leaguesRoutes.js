@@ -1,5 +1,5 @@
 import express from "express";
-import { getLeaguesByCountry } from "../controllers/leagueController.js";
+import { getLeaguesByCountry } from "./leagueController.js";
 
 const router = express.Router();
 

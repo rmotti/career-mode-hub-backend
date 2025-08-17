@@ -1,6 +1,6 @@
 // src/services/seasonService.js
-import { Season } from "../models/Season.js";
-import { Save } from "../models/Save.js";
+import { Season } from "../../models/season/Season.js";
+import { Save } from "../../models/save/Save.js";
 
 async function assertSaveOwnership(saveId, userId) {
   const owns = await Save.findOne({ _id: saveId, user: userId }).lean();

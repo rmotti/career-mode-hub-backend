@@ -5,7 +5,7 @@ import {
   getSeasonByIdForUser,
   updateSeasonForUser,
   deleteSeasonForUser
-} from "../services/seasonService.js";
+} from "../../services/season/seasonService.js";
 
 export async function create(req, res) {
   try {

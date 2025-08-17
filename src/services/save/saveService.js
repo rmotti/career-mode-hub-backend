@@ -1,4 +1,4 @@
-import { Save } from "../models/Save.js";
+import { Save } from "../../models/save/Save.js";
 
 // 🔹 Criar novo save
 export const createNewSave = async ({ user, userName, name, team, season }) => {

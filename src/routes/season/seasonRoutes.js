@@ -5,8 +5,8 @@ import {
   getOne,
   update,
   remove
-} from '../controllers/seasonController.js';
-import { protect } from '../middlewares/authMiddleware.js';
+} from '../../controllers/season/seasonController.js';
+import { protect } from '../../middlewares/authMiddleware.js'
 
 const router = express.Router();
 
