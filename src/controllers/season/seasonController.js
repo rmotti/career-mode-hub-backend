@@ -1,4 +1,3 @@
-// src/controllers/seasonController.js
 import {
   createSeason,
   listBySave,
@@ -46,7 +45,11 @@ export async function getOne(req, res) {
 
 export async function update(req, res) {
   try {
-    const updated = await updateSeasonForUser({ userId: req.user._id, seasonId: req.params.id, payload: req.body });
+    const updated = await updateSeasonForUser({
+      userId: req.user._id,
+      seasonId: req.params.id,
+      payload: req.body
+    });
     return res.json(updated);
   } catch (e) {
     return res.status(e.status || 500).json({ message: e.message });

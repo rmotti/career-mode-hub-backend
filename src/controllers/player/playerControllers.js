@@ -1,92 +1,147 @@
-// src/controllers/playerController.js
+// src/controllers/player/playerControllers.js
+import mongoose from "mongoose";
+import { Season } from "../../models/season/Season.js";
 import {
   listPlayers,
   createPlayer,
   getPlayer,
   updatePlayer,
-  deletePlayer,
+  deletePlayer
 } from "../../services/player/playerServices.js";
 
-/** GET /players */
+/** Util interna: valida que a season existe, pertence ao save e ao user */
+async function assertSeasonScope({ userId, saveId, seasonId }) {
+  if (!mongoose.isValidObjectId(saveId)) {
+    const err = new Error("ID de save inválido.");
+    err.status = 400; throw err;
+  }
+  if (!mongoose.isValidObjectId(seasonId)) {
+    const err = new Error("ID de temporada inválido.");
+    err.status = 400; throw err;
+  }
+  const season = await Season.findOne({ _id: seasonId, saveRef: saveId, user: userId }).lean();
+  if (!season) {
+    const err = new Error("Temporada não encontrada para este save ou sem permissão.");
+    err.status = 404; throw err;
+  }
+  return season;
+}
+
+/** GET /api/saves/:saveId/seasons/:seasonId/players */
 export async function getPlayers(req, res) {
   try {
     const { saveId, seasonId } = req.params;
+    await assertSeasonScope({ userId: req.user._id, saveId, seasonId });
+
     const {
-      q, position, role, status, minOverall, maxOverall,
-      page, pageSize, sort,
+      q,
+      position,
+      role,
+      status,
+      minOverall,
+      maxOverall,
+      page,
+      pageSize,
+      sort
     } = req.query;
 
-    const result = await listPlayers({
+    const data = await listPlayers({
       saveRef: saveId,
       seasonRef: seasonId,
-      q, position, role, status, minOverall, maxOverall,
-      page, pageSize, sort,
+      q,
+      position,
+      role,
+      status,
+      minOverall,
+      maxOverall,
+      page,
+      pageSize,
+      sort
     });
 
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ message: "Erro ao listar jogadores", error: err.message });
+    return res.json(data);
+  } catch (e) {
+    return res.status(e.status || 500).json({ message: e.message });
   }
 }
 
-/** POST /players */
+/** POST /api/saves/:saveId/seasons/:seasonId/players */
 export async function postPlayer(req, res) {
   try {
     const { saveId, seasonId } = req.params;
-    const payload = {
+    await assertSeasonScope({ userId: req.user._id, saveId, seasonId });
+
+    // Validações mínimas de payload
+    const { name, position } = req.body || {};
+    if (!name || !position) {
+      return res.status(400).json({ message: "Informe ao menos 'name' e 'position'." });
+    }
+
+    const created = await createPlayer({
       ...req.body,
       saveRef: saveId,
-      seasonRef: seasonId,
-    };
+      seasonRef: seasonId
+    });
 
-    // Validações básicas
-    if (!payload.playerId) return res.status(400).json({ message: "playerId é obrigatório" });
-    if (!payload.name) return res.status(400).json({ message: "name é obrigatório" });
-    if (!payload.position) return res.status(400).json({ message: "position é obrigatório" });
-
-    const created = await createPlayer(payload);
-    res.status(201).json(created);
-  } catch (err) {
-    // Duplicate key (índice único playerId+seasonRef)
-    if (err?.code === 11000) {
-      return res.status(409).json({ message: "Este playerId já existe nesta temporada" });
-    }
-    res.status(500).json({ message: "Erro ao criar jogador", error: err.message });
+    return res.status(201).json(created);
+  } catch (e) {
+    return res.status(e.status || 500).json({ message: e.message });
   }
 }
 
-/** GET /players/:playerDocId */
+/** GET /api/saves/:saveId/seasons/:seasonId/players/:playerDocId */
 export async function getPlayerById(req, res) {
   try {
     const { saveId, seasonId, playerDocId } = req.params;
-    const found = await getPlayer(playerDocId, { saveRef: saveId, seasonRef: seasonId });
-    if (!found) return res.status(404).json({ message: "Jogador não encontrado" });
-    res.json(found);
-  } catch (err) {
-    res.status(500).json({ message: "Erro ao buscar jogador", error: err.message });
+    await assertSeasonScope({ userId: req.user._id, saveId, seasonId });
+
+    if (!mongoose.isValidObjectId(playerDocId)) {
+      return res.status(400).json({ message: "ID de jogador inválido." });
+    }
+
+    const doc = await getPlayer(playerDocId, { saveRef: saveId, seasonRef: seasonId });
+    if (!doc) return res.status(404).json({ message: "Jogador não encontrado." });
+
+    return res.json(doc);
+  } catch (e) {
+    return res.status(e.status || 500).json({ message: e.message });
   }
 }
 
-/** PUT /players/:playerDocId */
+/** PUT /api/saves/:saveId/seasons/:seasonId/players/:playerDocId */
 export async function putPlayer(req, res) {
   try {
     const { saveId, seasonId, playerDocId } = req.params;
-    const updated = await updatePlayer(playerDocId, { saveRef: saveId, seasonRef: seasonId }, req.body);
-    if (!updated) return res.status(404).json({ message: "Jogador não encontrado" });
-    res.json(updated);
-  } catch (err) {
-    res.status(500).json({ message: "Erro ao atualizar jogador", error: err.message });
+    await assertSeasonScope({ userId: req.user._id, saveId, seasonId });
+
+    if (!mongoose.isValidObjectId(playerDocId)) {
+      return res.status(400).json({ message: "ID de jogador inválido." });
+    }
+
+    const updated = await updatePlayer(playerDocId, { saveRef: saveId, seasonRef: seasonId }, req.body || {});
+    if (!updated) return res.status(404).json({ message: "Jogador não encontrado." });
+
+    return res.json(updated);
+  } catch (e) {
+    return res.status(e.status || 500).json({ message: e.message });
   }
 }
 
-/** DELETE /players/:playerDocId */
+/** DELETE /api/saves/:saveId/seasons/:seasonId/players/:playerDocId */
 export async function removePlayer(req, res) {
   try {
     const { saveId, seasonId, playerDocId } = req.params;
-    const removed = await deletePlayer(playerDocId, { saveRef: saveId, seasonRef: seasonId });
-    if (!removed) return res.status(404).json({ message: "Jogador não encontrado" });
-    res.json({ message: "Jogador removido com sucesso", _id: playerDocId });
-  } catch (err) {
-    res.status(500).json({ message: "Erro ao remover jogador", error: err.message });
+    await assertSeasonScope({ userId: req.user._id, saveId, seasonId });
+
+    if (!mongoose.isValidObjectId(playerDocId)) {
+      return res.status(400).json({ message: "ID de jogador inválido." });
+    }
+
+    const deleted = await deletePlayer(playerDocId, { saveRef: saveId, seasonRef: seasonId });
+    if (!deleted) return res.status(404).json({ message: "Jogador não encontrado." });
+
+    return res.json({ ok: true });
+  } catch (e) {
+    return res.status(e.status || 500).json({ message: e.message });
   }
 }

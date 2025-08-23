@@ -1,4 +1,3 @@
-// src/services/season/seasonService.js
 import mongoose from "mongoose";
 import { Season } from "../../models/season/Season.js";
 import { Save } from "../../models/save/Save.js";
@@ -20,7 +19,7 @@ async function assertSaveOwnership(saveId, userId) {
 /** CREATE */
 export async function createSeason({
   userId,
-  save, // <- vem do body/params
+  save,
   label,
   startDate,
   endDate,
@@ -33,7 +32,8 @@ export async function createSeason({
 
   try {
     const season = await Season.create({
-      saveRef: save, // <- **consistente com o model**
+      user: userId,
+      saveRef: save,
       label,
       startDate,
       endDate,
@@ -63,37 +63,41 @@ export async function createSeason({
 /** LIST by save */
 export async function listBySave({ userId, saveId }) {
   await assertSaveOwnership(saveId, userId);
-  return Season.find({ saveRef: saveId }) // <- **saveRef**
-    .sort({ startDate: -1, createdAt: -1 })
+  return Season.find({ saveRef: saveId })
+    .sort({ createdAt: -1 }) // mais estável que startDate
     .lean();
 }
 
-/** GET one (checa propriedade pelo saveRef do doc) */
+/** GET one */
 export async function getSeasonByIdForUser({ userId, seasonId }) {
   if (!mongoose.isValidObjectId(seasonId)) {
     throw httpError(400, "ID de temporada inválido.");
   }
   const season = await Season.findById(seasonId).lean();
   if (!season) throw httpError(404, "Temporada não encontrada.");
-  await assertSaveOwnership(season.saveRef, userId); // <- **saveRef**
+  await assertSaveOwnership(season.saveRef, userId);
   return season;
 }
 
-/** UPDATE (whitelist) */
+/** UPDATE */
 export async function updateSeasonForUser({ userId, seasonId, payload }) {
   if (!mongoose.isValidObjectId(seasonId)) {
     throw httpError(400, "ID de temporada inválido.");
   }
   const season = await Season.findById(seasonId);
   if (!season) throw httpError(404, "Temporada não encontrada.");
-  await assertSaveOwnership(season.saveRef, userId); // <- **saveRef**
+  await assertSaveOwnership(season.saveRef, userId);
 
   const updatable = {};
   const allowed = ["label", "startDate", "endDate", "mainLeagueName", "mainLeagueId", "notes", "summary"];
   for (const k of allowed) if (payload[k] !== undefined) updatable[k] = payload[k];
 
   try {
-    const updated = await Season.findByIdAndUpdate(seasonId, { $set: updatable }, { new: true });
+    const updated = await Season.findByIdAndUpdate(
+      seasonId,
+      { $set: updatable },
+      { new: true, runValidators: true, context: "query" }
+    );
     return updated;
   } catch (e) {
     if (e?.code === 11000) throw httpError(409, "Já existe uma temporada com esse label neste save.");
@@ -108,7 +112,7 @@ export async function deleteSeasonForUser({ userId, seasonId }) {
   }
   const season = await Season.findById(seasonId);
   if (!season) throw httpError(404, "Temporada não encontrada.");
-  await assertSaveOwnership(season.saveRef, userId); // <- **saveRef**
+  await assertSaveOwnership(season.saveRef, userId);
 
   await Season.deleteOne({ _id: seasonId });
   return { ok: true };

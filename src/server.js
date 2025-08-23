@@ -1,4 +1,3 @@
-// src/server.js
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -22,10 +21,16 @@ app.use("/api/countries", countriesRoutes);
 app.use("/api/leagues", leaguesRoutes);
 app.use("/api/seasons", seasonRoutes);
 app.use("/api/saves/:saveId/seasons/:seasonId/players", playerRoutes);
-// Rota raiz
 
-app.get("/", (_req, res) => {
-  res.send("Career Mode Hub API está no ar!");
+// Rota raiz e healthcheck
+app.get("/", (_req, res) => res.send("Career Mode Hub API está no ar!"));
+app.get("/api/status", (_req, res) =>
+  res.status(200).json({ message: "Backend do Career Mode Hub está rodando!" })
+);
+
+// Handler para 404
+app.use((req, res) => {
+  res.status(404).json({ message: "Rota não encontrada" });
 });
 
 const PORT = process.env.PORT || 5000;
