@@ -7,23 +7,20 @@ import {
   putPlayer,
   removePlayer,
 } from "../../controllers/player/playerControllers.js";
-
 import { protect } from "../../middlewares/authMiddleware.js";
 
 const router = express.Router({ mergeParams: true });
 
 // Base: /api/saves/:saveId/seasons/:seasonId/players
-router
-  .route("/")
-  // .all(protect) // se usar auth
-  .get(getPlayers)
-  .post(postPlayer);
+router.use(protect);
 
-router
-  .route("/:playerDocId")
-  .all(protect)
-  .get(getPlayerById)
-  .put(putPlayer)
-  .delete(removePlayer);
+router.route("/")
+  .get(getPlayers)   // lista jogadores da temporada
+  .post(postPlayer); // cria jogador na temporada
+
+router.route("/:playerDocId")
+  .get(getPlayerById) // busca jogador específico
+  .put(putPlayer)     // atualiza jogador
+  .delete(removePlayer); // remove jogador
 
 export default router;
